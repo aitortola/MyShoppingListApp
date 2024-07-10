@@ -57,7 +57,7 @@ fun ShoppingListApp() {
     ) {
         Button(
             onClick = { showDialog = true },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(8.dp)
         ) {
             Text(text = "Add Item")
         }
@@ -67,7 +67,24 @@ fun ShoppingListApp() {
                 .padding(16.dp)
         ) {
             items(sItems) {
-                ShoppingListItem(item = it, onEditClick = {  }, onDeleteClick = {  })
+                item ->
+                if (item.isEditing) {
+                    ShoppingItemEditor(item = item, onEditComplete = {
+                        editedName, editedQuantity ->
+                        sItems = sItems.map { it.copy(isEditing = false) }
+                        val editedItem = sItems.find{ it.id == item.id }
+                        editedItem?.let {
+                            it.name = editedName
+                            it.quantity = editedQuantity
+                        }
+                    })
+                } else {
+                    ShoppingListItem(item = item, onEditClick = {
+                        sItems = sItems.map { it.copy(isEditing = it.id == item.id) }
+                    }, onDeleteClick = {
+                        sItems = sItems.filter { it.id != item.id }
+                    })
+                }
             }
         }
     }
@@ -114,6 +131,7 @@ fun ShoppingListApp() {
                         value = itemName,
                         onValueChange = { itemName = it },
                         singleLine = true,
+                        label = { Text("Item Name") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
@@ -123,6 +141,7 @@ fun ShoppingListApp() {
                         value = itemQuantity,
                         onValueChange = { itemQuantity = it },
                         singleLine = true,
+                        label = { Text("Quantity") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
@@ -192,7 +211,7 @@ fun ShoppingListItem(
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(20)
             ),
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(text = item.name, modifier = Modifier.padding(8.dp))
         Text(text = "Qty: ${item.quantity}", modifier = Modifier.padding(8.dp))
